@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>kubernetes Tag | Matt Austin</title>
+    <meta name="generator" content="VuePress 1.5.2">
+    
+    <meta name="description" content="Personal blog for anything technological and programming I feel the need to share">
+    <link rel="preload" href="/assets/css/0.styles.ef48967c.css" as="style"><link rel="preload" href="/assets/js/app.719779a0.js" as="script"><link rel="preload" href="/assets/js/6.5a5d3722.js" as="script"><link rel="preload" href="/assets/js/12.cbe1e5dd.js" as="script"><link rel="preload" href="/assets/js/4.1e0a0c14.js" as="script"><link rel="prefetch" href="/assets/js/10.ad42f919.js"><link rel="prefetch" href="/assets/js/11.5f2113f1.js"><link rel="prefetch" href="/assets/js/13.71ad5dd4.js"><link rel="prefetch" href="/assets/js/14.1d0ed4df.js"><link rel="prefetch" href="/assets/js/15.46172771.js"><link rel="prefetch" href="/assets/js/16.b495c123.js"><link rel="prefetch" href="/assets/js/17.5bee3966.js"><link rel="prefetch" href="/assets/js/18.bb37b752.js"><link rel="prefetch" href="/assets/js/3.0200f067.js"><link rel="prefetch" href="/assets/js/5.dfc964d0.js"><link rel="prefetch" href="/assets/js/7.a11674cb.js"><link rel="prefetch" href="/assets/js/8.bd5481f9.js"><link rel="prefetch" href="/assets/js/9.076c7963.js"><link rel="prefetch" href="/assets/js/vuejs-paginate.fd7b906a.js">
+    <link rel="stylesheet" href="/assets/css/0.styles.ef48967c.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div id="vuepress-theme-blog__global-layout"><section id="header-wrapper"><header id="header"><div class="header-wrapper"><div class="title"><a href="/" class="nav-link home-link">Matt Austin </a></div> <div class="header-right-wrap"><ul class="nav"><li class="nav-item"><a href="/" class="nav-link">Blog</a></li><li class="nav-item"><a href="/tag/" class="nav-link router-link-active">Tags</a></li></ul> <div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <!----></div></div></header></section> <div id="mobile-header"><div class="mobile-header-bar"><div class="mobile-header-title"><a href="/" class="nav-link mobile-home-link">Matt Austin </a> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></div> <div class="mobile-menu-wrapper"><hr class="menu-divider"> <ul class="mobile-nav"><li class="mobile-nav-item"><a href="/" class="nav-link">Blog</a></li><li class="mobile-nav-item"><a href="/tag/" class="nav-link router-link-active">Tags</a></li> <li class="mobile-nav-item"><!----></li></ul></div></div></div> <div class="content-wrapper"><div><div id="base-list-layout"><div itemscope="itemscope" itemtype="http://schema.org/Blog" class="ui-posts"><article itemprop="blogPost" itemscope="itemscope" itemtype="https://schema.org/BlogPosting" class="ui-post"><meta itemprop="mainEntityOfPage" content="/2020/08/17/promox-k8s-part-2-base-software/"> <header itemprop="name headline" class="ui-post-title"><a href="/2020/08/17/promox-k8s-part-2-base-software/" class="nav-link">Setting up a Kubernetes Cluster from Scatch with Proxmox, Debian and Ansible - Part 2 (Base Configuration and Software)</a></header> <p itemprop="description" class="ui-post-summary">
+        
+Part 2 of the series on setting up a virtualized Kubernetes cluster on Debian VMs in Proxmox.  This covers installing the prerequisite software and configuring the VMs to act as Kubernetes notes.  I' ...
+      </p> <footer><div itemprop="publisher author" itemtype="http://schema.org/Person" itemscope="itemscope" class="ui-post-meta ui-post-author"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg> <span itemprop="name">mlaustin</span> <!----></div> <div class="ui-post-meta ui-post-date"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> <time pubdate itemprop="datePublished" datetime="2020-08-18T00:00:00.000Z">
+            Mon Aug 17 2020
+          </time></div> <div itemprop="keywords" class="ui-post-meta ui-post-tag"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg> <a href="/tag/proxmox">
+            proxmox
+          </a><a href="/tag/kubernetes" aria-current="page" class="router-link-exact-active router-link-active">
+            kubernetes
+          </a><a href="/tag/ansible">
+            ansible
+          </a><a href="/tag/debian">
+            debian
+          </a><a href="/tag/docker">
+            docker
+          </a></div></footer></article><article itemprop="blogPost" itemscope="itemscope" itemtype="https://schema.org/BlogPosting" class="ui-post"><meta itemprop="mainEntityOfPage" content="/2020/08/09/promox-k8s-part-1-vms/"> <header itemprop="name headline" class="ui-post-title"><a href="/2020/08/09/promox-k8s-part-1-vms/" class="nav-link">Setting up a Kubernetes Cluster from Scatch with Proxmox, Debian and Ansible - Part 1 (VMs)</a></header> <p itemprop="description" class="ui-post-summary">
+        
+One of the main things I wanted to be able to use my home server for was self hosting applications.  Since Kubernetes has become the standard framework for enterprise container orchestration, and I u ...
+      </p> <footer><div itemprop="publisher author" itemtype="http://schema.org/Person" itemscope="itemscope" class="ui-post-meta ui-post-author"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg> <span itemprop="name">mlaustin</span> <!----></div> <div class="ui-post-meta ui-post-date"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> <time pubdate itemprop="datePublished" datetime="2020-08-10T00:00:00.000Z">
+            Sun Aug 09 2020
+          </time></div> <div itemprop="keywords" class="ui-post-meta ui-post-tag"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg> <a href="/tag/proxmox">
+            proxmox
+          </a><a href="/tag/kubernetes" aria-current="page" class="router-link-exact-active router-link-active">
+            kubernetes
+          </a><a href="/tag/ansible">
+            ansible
+          </a><a href="/tag/debian">
+            debian
+          </a><a href="/tag/docker">
+            docker
+          </a></div></footer></article></div> <!----></div></div></div> <footer class="footer" data-v-fdbf4940><div class="footer-left-wrap" data-v-fdbf4940><ul class="contact" data-v-fdbf4940><li class="contact-item" data-v-fdbf4940><a href="https://github.com/mlaustin44" target="_blank" rel="noopener noreferrer" class="nav-link external" data-v-fdbf4940><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github" data-v-fdbf4940><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" data-v-fdbf4940></path></svg>
+          
+        </a></li></ul></div> <div class="footer-right-wrap" data-v-fdbf4940><ul class="copyright" data-v-fdbf4940><li class="copyright-item" data-v-fdbf4940><a href="/tag/kubernetes/.html" class="nav-link" data-v-fdbf4940>Matthew Austin © 2020</a></li></ul></div></footer></div><div class="global-ui"></div></div>
+    <script src="/assets/js/app.719779a0.js" defer></script><script src="/assets/js/6.5a5d3722.js" defer></script><script src="/assets/js/12.cbe1e5dd.js" defer></script><script src="/assets/js/4.1e0a0c14.js" defer></script>
+  </body>
+</html>

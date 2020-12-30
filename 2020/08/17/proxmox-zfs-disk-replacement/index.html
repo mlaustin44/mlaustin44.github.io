@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Replacing Disks in a Proxmox ZFS Pool | Matt Austin</title>
+    <meta name="generator" content="VuePress 1.5.2">
+    
+    <meta name="description" content="
+When I set up my Proxmox home server I used ZFS as the file system/RAID.  ZFS provides both a filesystem and integrity checking/redundancy features.  Since I had 4x2TB drives available to be in a 1U ...">
+    <link rel="preload" href="/assets/css/0.styles.ef48967c.css" as="style"><link rel="preload" href="/assets/js/app.719779a0.js" as="script"><link rel="preload" href="/assets/js/6.5a5d3722.js" as="script"><link rel="preload" href="/assets/js/3.0200f067.js" as="script"><link rel="preload" href="/assets/js/16.b495c123.js" as="script"><link rel="prefetch" href="/assets/js/10.ad42f919.js"><link rel="prefetch" href="/assets/js/11.5f2113f1.js"><link rel="prefetch" href="/assets/js/12.cbe1e5dd.js"><link rel="prefetch" href="/assets/js/13.71ad5dd4.js"><link rel="prefetch" href="/assets/js/14.1d0ed4df.js"><link rel="prefetch" href="/assets/js/15.46172771.js"><link rel="prefetch" href="/assets/js/17.5bee3966.js"><link rel="prefetch" href="/assets/js/18.bb37b752.js"><link rel="prefetch" href="/assets/js/4.1e0a0c14.js"><link rel="prefetch" href="/assets/js/5.dfc964d0.js"><link rel="prefetch" href="/assets/js/7.a11674cb.js"><link rel="prefetch" href="/assets/js/8.bd5481f9.js"><link rel="prefetch" href="/assets/js/9.076c7963.js"><link rel="prefetch" href="/assets/js/vuejs-paginate.fd7b906a.js">
+    <link rel="stylesheet" href="/assets/css/0.styles.ef48967c.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div id="vuepress-theme-blog__global-layout"><section id="header-wrapper"><header id="header"><div class="header-wrapper"><div class="title"><a href="/" class="nav-link home-link">Matt Austin </a></div> <div class="header-right-wrap"><ul class="nav"><li class="nav-item"><a href="/" class="nav-link">Blog</a></li><li class="nav-item"><a href="/tag/" class="nav-link">Tags</a></li></ul> <div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <!----></div></div></header></section> <div id="mobile-header"><div class="mobile-header-bar"><div class="mobile-header-title"><a href="/" class="nav-link mobile-home-link">Matt Austin </a> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></div> <div class="mobile-menu-wrapper"><hr class="menu-divider"> <ul class="mobile-nav"><li class="mobile-nav-item"><a href="/" class="nav-link">Blog</a></li><li class="mobile-nav-item"><a href="/tag/" class="nav-link">Tags</a></li> <li class="mobile-nav-item"><!----></li></ul></div></div></div> <div class="content-wrapper"><div id="vuepress-theme-blog__post-layout"><article itemscope="itemscope" itemtype="https://schema.org/BlogPosting" class="vuepress-blog-theme-content"><header><h1 itemprop="name headline" class="post-title">
+        Replacing Disks in a Proxmox ZFS Pool
+      </h1> <div class="post-meta"><div itemprop="publisher author" itemtype="http://schema.org/Person" itemscope="itemscope" class="post-meta-author"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg> <span itemprop="name">mlaustin</span> <!----></div> <div class="post-meta-date"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> <time pubdate itemprop="datePublished" datetime="2020-08-18T00:00:00.000Z">
+      Mon Aug 17 2020
+    </time></div> <ul itemprop="keywords" class="post-meta-tags"><li class="post-tag" data-v-42ccfcd5><a href="/tag/proxmox" data-v-42ccfcd5><span data-v-42ccfcd5>proxmox</span></a></li><li class="post-tag" data-v-42ccfcd5><a href="/tag/debian" data-v-42ccfcd5><span data-v-42ccfcd5>debian</span></a></li></ul></div></header> <div itemprop="articleBody" class="content__default"><h2 id="introduction"><a href="#introduction" class="header-anchor">#</a> Introduction</h2> <p>When I set up my Proxmox home server I used ZFS as the file system/RAID.  ZFS provides both a filesystem and integrity checking/redundancy features.  Since I had 4x2TB drives available to be in a 1U server, I decided to use 'RAID-Z', which is analogous to RAID-5 - you get the storage of n-1 of your disks, because one drive is used to store a parity value across the other disks.  This way, if any data disk fails you can recalculate its data using the parity values, and if the parity disk fails you can recalculate the parity.</p> <p>When I purchased the server I also got a replacement 2TB SAS drive compatible with my server so I'd have it on hand in case a disk failed.</p> <p>Years ago I ran a hardware RAID-5 configuration on a desktop computer using an old Dell RAID controller.  At some point a disk failed, and when I tried to replace it I ended up ruining the entire cluster.  I realized that if I wanted to use this server to actually store important data, I would need to ensure that I had a tested process I understood to replace a failed drive.  I created a fake failure scenario by shutting down the server, swapping one of the drives for my spare, and then booting up.</p> <h2 id="replacing-disks"><a href="#replacing-disks" class="header-anchor">#</a> Replacing Disks</h2> <h3 id="background"><a href="#background" class="header-anchor">#</a> Background</h3> <p>My zpool is called 'rpool' and consists of 4 2TB drives in a RAID-Z configuration.</p> <h3 id="assessing-the-failure"><a href="#assessing-the-failure" class="header-anchor">#</a> Assessing the Failure</h3> <p>First, we can check the status of our zpool with 'zpool status':</p> <div class="language-bash extra-class"><pre class="language-bash"><code>root@proxmox:~<span class="token comment"># zpool status</span>
+  pool: rpool
+ state: DEGRADED
+status: One or <span class="token function">more</span> devices could not be used because the label is missing or
+	invalid.  Sufficient replicas exist <span class="token keyword">for</span> the pool to <span class="token builtin class-name">continue</span>
+	functioning <span class="token keyword">in</span> a degraded state.
+action: Replace the device using <span class="token string">'zpool replace'</span><span class="token builtin class-name">.</span>
+   see: http://zfsonlinux.org/msg/ZFS-8000-4J
+  scan: resilvered <span class="token number">10</span>.0G <span class="token keyword">in</span> <span class="token number">0</span> days 00:28:56 with <span class="token number">0</span> errors on Mon Aug <span class="token number">17</span> <span class="token number">17</span>:54:47 <span class="token number">2020</span>
+config:
+
+	NAME                              STATE     READ WRITE CKSUM
+	rpool                             DEGRADED     <span class="token number">0</span>     <span class="token number">0</span>     <span class="token number">0</span>
+	  raidz1-0                        DEGRADED     <span class="token number">0</span>     <span class="token number">0</span>     <span class="token number">0</span>
+	    scsi-35000c500573c0633-part3  ONLINE       <span class="token number">0</span>     <span class="token number">0</span>     <span class="token number">0</span>
+	    <span class="token number">12204241085373093059</span>          UNAVAIL      <span class="token number">0</span>     <span class="token number">0</span>     <span class="token number">0</span>  was /dev/disk/by-id/scsi-35000c50042509acf-part3
+	    scsi-35000c50056f2a1c7-part3  ONLINE       <span class="token number">0</span>     <span class="token number">0</span>     <span class="token number">0</span>
+	    scsi-35000c50056a77683-part3  ONLINE       <span class="token number">0</span>     <span class="token number">0</span>     <span class="token number">0</span>
+
+errors: No known data errors
+</code></pre></div><p>When I arrived here I had to pause for a moment to marvel at the fact that even though one of its drives was missing, ZFS allowed my server to boot up and function fully.  As the status result notes, performance will be 'degraded' - beacuse it might be needing to calculate 1/3 of the data from parity values - but everthing still generally works, which is incredible to me.</p> <p>A few key takehomes from this:</p> <ul><li>The good disks are:
+<ul><li>scsi-35000c500573c0633</li> <li>scsi-35000c50056f2a1c7</li> <li>scsi-35000c50056a77683</li></ul></li> <li>The failed disk is:
+<ul><li>scsi-35000c50042509acf</li></ul></li></ul> <p>Now we can list the actual devices available on the system (since I prematurely 'replaced' the physical drive):</p> <div class="language-bash extra-class"><pre class="language-bash"><code>root@proxmox:~<span class="token comment"># ls -1 /dev/disk/by-id/</span>
+scsi-35000c50056a77683
+scsi-35000c50056a77683-part1
+scsi-35000c50056a77683-part2
+scsi-35000c50056a77683-part3
+scsi-35000c50056f2a1c7
+scsi-35000c50056f2a1c7-part1
+scsi-35000c50056f2a1c7-part2
+scsi-35000c50056f2a1c7-part3
+scsi-35000c50056f79d47
+scsi-35000c500573c0633
+scsi-35000c500573c0633-part1
+scsi-35000c500573c0633-part2
+scsi-35000c500573c0633-part3
+<span class="token punctuation">..</span>.
+</code></pre></div><p>The replacement disk is the only one that isn't part of the pool - scsi-35000c50056f79d47.</p> <h4 id="aside-mapping-dev-sdx-to-ids"><a href="#aside-mapping-dev-sdx-to-ids" class="header-anchor">#</a> Aside: Mapping /dev/sdX to IDs</h4> <p>This stumped me for a bit so I wanted to include it.  Lots of Linux utilities are looking for you address drives as /dev/sdX rather than by ID.  The only way I've found to do this is to go through all your /dev/sdX's and use smartctl to print out the disk details, which include the UID:</p> <div class="language-bash extra-class"><pre class="language-bash"><code>root@proxmox:~<span class="token comment"># smartctl -i /dev/sda</span>
+smartctl <span class="token number">7.1</span> <span class="token number">2019</span>-12-30 r5022 <span class="token punctuation">[</span>x86_64-linux-5.4.34-1-pve<span class="token punctuation">]</span> <span class="token punctuation">(</span>local build<span class="token punctuation">)</span>
+Copyright <span class="token punctuation">(</span>C<span class="token punctuation">)</span> <span class="token number">2002</span>-19, Bruce Allen, Christian Franke, www.smartmontools.org
+
+<span class="token operator">==</span><span class="token operator">=</span> START OF INFORMATION SECTION <span class="token operator">==</span><span class="token operator">=</span>
+Vendor:               SEAGATE
+Product:              ST2000NM0001
+Revision:             0002
+Compliance:           SPC-4
+User Capacity:        <span class="token number">2,000</span>,398,934,016 bytes <span class="token punctuation">[</span><span class="token number">2.00</span> TB<span class="token punctuation">]</span>
+Logical block size:   <span class="token number">512</span> bytes
+Rotation Rate:        <span class="token number">7200</span> <span class="token function">rpm</span>
+Form Factor:          <span class="token number">3.5</span> inches
+Logical Unit id:      0x5000c500573c0633
+Serial number:        Z1P65M4Y0000940662YF
+Device type:          disk
+Transport protocol:   SAS <span class="token punctuation">(</span>SPL-3<span class="token punctuation">)</span>
+Local Time is:        Tue Aug <span class="token number">18</span> 09:41:01 <span class="token number">2020</span> CDT
+SMART support is:     Available - device has SMART capability.
+SMART support is:     Enabled
+Temperature Warning:  Enabled
+</code></pre></div><p>The 'Logical Unit id' will correspond to the drive UID.</p> <h4 id="aside-2-physically-locating-disks"><a href="#aside-2-physically-locating-disks" class="header-anchor">#</a> Aside 2: Physically locating disks</h4> <p>On most servers, there is a physical LED for drive failure which you can control through the ledctl software utility to identify drives.  On Proxmox/Debian this is in the 'ledmon' package (apt-get install ledmon).  You can then turn the LED indicator on and off with:</p> <div class="language-bash extra-class"><pre class="language-bash"><code>root@proxmox:/dev<span class="token comment"># ledctl locate=/dev/disk/by-id/scsi-35000c500573c0633</span>
+root@proxmox:/dev<span class="token comment"># ledctl locate_off=/dev/disk/by-id/scsi-35000c500573c0633</span>
+</code></pre></div><h3 id="replacement-disk-boot-partition"><a href="#replacement-disk-boot-partition" class="header-anchor">#</a> Replacement disk boot partition</h3> <p>If the ZFS pool is also where Proxmox boots you will need to perform a few extra steps which I missed the first time I tested this process.  Each drive in the ZFS pool needs to be bootable and have a boot partitions (which we copy from one of the other drives - all the boot partitions are identical).</p> <ol><li>Replicate an existing drive's boot partition
+Using 'sgdisk <existing drive=""> -R <new drive="">' we copy the boot partition and partition table to the new disk:</new></existing></li></ol> <div class="language-bash extra-class"><pre class="language-bash"><code>root@proxmox:/dev<span class="token comment"># sgdisk /dev/sda -R /dev/sdb</span>
+The operation has completed successfully.
+</code></pre></div><ol start="2"><li>Randomize the GUIDs for the new drive
+Since we did an exact duplicate of an existing drive's boot data, we now need to randomize the disk and parition GUIDs to avoid a collision using 'sgdisk -G <new drive="">'</new></li></ol> <div class="language-bash extra-class"><pre class="language-bash"><code>root@proxmox:/dev<span class="token comment"># sgdisk -G /dev/sdb</span>
+The operation has completed successfully.
+</code></pre></div><ol start="3"><li>Add grub to the new disk
+Install grub on the new drive using 'grub-install <new drive="">'</new></li></ol> <div class="language-bash extra-class"><pre class="language-bash"><code>root@proxmox:/dev<span class="token comment"># grub-install /dev/sdb</span>
+Installing <span class="token keyword">for</span> i386-pc platform.
+Installation finished. No error reported.
+</code></pre></div><h3 id="add-the-new-disk-to-the-zfs-pool-and-resilver"><a href="#add-the-new-disk-to-the-zfs-pool-and-resilver" class="header-anchor">#</a> Add the new disk to the ZFS pool and resilver</h3> <p>The actual ZFS replacement is shockingly easy - it's a single command to tell ZFS, after which copying and checking the data (resilvering) is automatic: 'zpool replace -f <pool><old device=""><new device="">'.  Note that ZFS always uses drive UIDs instead of /dev/sdX's.</new></old></pool></p> <p>There is one big 'gotcha' for bootable disks - you don't want to add the entire disk to the pool, as that actually overwrites your shiny new partition table.  Rather, you need to use the ZFS partition for the replacement (the partition table was created by copying from a known good disk).  The current partition table can be printed out using 'fdisk -l <drive>':</drive></p> <div class="language-bash extra-class"><pre class="language-bash"><code>root@proxmox:/dev<span class="token comment"># fdisk -l /dev/sdb</span>
+Disk /dev/sdb: <span class="token number">1.8</span> TiB, <span class="token number">2000398934016</span> bytes, <span class="token number">3907029168</span> sectors
+Disk model: ST2000NM0001    
+Units: sectors of <span class="token number">1</span> * <span class="token number">512</span> <span class="token operator">=</span> <span class="token number">512</span> bytes
+Sector size <span class="token punctuation">(</span>logical/physical<span class="token punctuation">)</span>: <span class="token number">512</span> bytes / <span class="token number">512</span> bytes
+I/O size <span class="token punctuation">(</span>minimum/optimal<span class="token punctuation">)</span>: <span class="token number">512</span> bytes / <span class="token number">512</span> bytes
+Disklabel type: gpt
+Disk identifier: 774AF982-0268-4814-A93E-A969E91F22FC
+
+Device       Start        End    Sectors  Size Type
+/dev/sdb1       <span class="token number">34</span>       <span class="token number">2047</span>       <span class="token number">2014</span> 1007K BIOS boot
+/dev/sdb2     <span class="token number">2048</span>    <span class="token number">1050623</span>    <span class="token number">1048576</span>  512M EFI System
+/dev/sdb3  <span class="token number">1050624</span> <span class="token number">3907029134</span> <span class="token number">3905978511</span>  <span class="token number">1</span>.8T Solaris /usr <span class="token operator">&amp;</span> Apple ZFS
+</code></pre></div><p>The 3rd dev partition (sdb3) corresponds to the UID-part3 - so in this case, the drive I actually want to replace into the pool is 'scsi-35000c50056f79d47-part3'</p> <div class="language-bash extra-class"><pre class="language-bash"><code>root@proxmox:/dev<span class="token comment"># zpool replace -f rpool scsi-35000c50042509acf scsi-35000c50056f79d47-part3</span>
+Make sure to <span class="token function">wait</span> <span class="token keyword">until</span> resilver is <span class="token keyword">done</span> before rebooting.
+</code></pre></div><p>You can watch the status of the resilver by calling 'zpool status' - it shows up in the top information section:</p> <div class="language-bash extra-class"><pre class="language-bash"><code>root@proxmox:/dev<span class="token comment"># zpool status</span>
+  pool: rpool
+ state: DEGRADED
+status: One or <span class="token function">more</span> devices is currently being resilvered.  The pool will
+	<span class="token builtin class-name">continue</span> to function, possibly <span class="token keyword">in</span> a degraded state.
+action: Wait <span class="token keyword">for</span> the resilver to complete.
+  scan: resilver <span class="token keyword">in</span> progress since Tue Aug <span class="token number">18</span> 09:54:47 <span class="token number">2020</span>
+	<span class="token number">58</span>.5G scanned at <span class="token number">1</span>.83G/s, <span class="token number">22</span>.8G issued at 729M/s, <span class="token number">58</span>.6G total
+	<span class="token number">85</span>.8M resilvered, <span class="token number">38.92</span>% done, <span class="token number">0</span> days 00:00:50 to go
+config:
+
+	NAME                               STATE     READ WRITE CKSUM
+	rpool                              DEGRADED     <span class="token number">0</span>     <span class="token number">0</span>     <span class="token number">0</span>
+	  raidz1-0                         DEGRADED     <span class="token number">0</span>     <span class="token number">0</span>     <span class="token number">0</span>
+	    scsi-35000c500573c0633-part3   ONLINE       <span class="token number">0</span>     <span class="token number">0</span>     <span class="token number">0</span>
+	    replacing-1                    DEGRADED     <span class="token number">0</span>     <span class="token number">0</span>     <span class="token number">0</span>
+	      <span class="token number">12204241085373093059</span>         UNAVAIL      <span class="token number">0</span>     <span class="token number">0</span>     <span class="token number">0</span>  was /dev/disk/by-id/scsi-35000c50042509acf-part3
+	      scsi-35000c50056f79d47-part3 ONLINE       <span class="token number">0</span>     <span class="token number">0</span>     <span class="token number">0</span>  <span class="token punctuation">(</span>resilvering<span class="token punctuation">)</span>
+	    scsi-35000c50056f2a1c7-part3   ONLINE       <span class="token number">0</span>     <span class="token number">0</span>     <span class="token number">0</span>
+	    scsi-35000c50056a77683-part3   ONLINE       <span class="token number">0</span>     <span class="token number">0</span>     <span class="token number">0</span>
+
+errors: No known data errors
+</code></pre></div><h3 id="references"><a href="#references" class="header-anchor">#</a> References</h3> <ol><li>Oracle ZFS Docs - Replacing drives: (https://docs.oracle.com/cd/E19253-01/819-5461/gazgd/index.html)</li> <li>Proxmox Docs - Replacing bootable ZFS drives: (https://pve.proxmox.com/wiki/ZFS_on_Linux#sysadmin_zfs_change_failed_dev)</li> <li>sgdisk man page: (https://www.rodsbooks.com/gdisk/sgdisk.html)</li> <li>ledctl man page: (https://linux.die.net/man/8/ledctl)</li></ol></div> <footer><!----> <hr> <!----></footer></article> <div class="sticker vuepress-toc"><div class="vuepress-toc-item vuepress-toc-h2 active"><a href="#introduction" title="Introduction">Introduction</a></div><div class="vuepress-toc-item vuepress-toc-h2"><a href="#replacing-disks" title="Replacing Disks">Replacing Disks</a></div><div class="vuepress-toc-item vuepress-toc-h3"><a href="#background" title="Background">Background</a></div><div class="vuepress-toc-item vuepress-toc-h3"><a href="#assessing-the-failure" title="Assessing the Failure">Assessing the Failure</a></div><div class="vuepress-toc-item vuepress-toc-h3"><a href="#replacement-disk-boot-partition" title="Replacement disk boot partition">Replacement disk boot partition</a></div><div class="vuepress-toc-item vuepress-toc-h3"><a href="#add-the-new-disk-to-the-zfs-pool-and-resilver" title="Add the new disk to the ZFS pool and resilver">Add the new disk to the ZFS pool and resilver</a></div><div class="vuepress-toc-item vuepress-toc-h3"><a href="#references" title="References">References</a></div></div></div></div> <footer class="footer" data-v-fdbf4940><div class="footer-left-wrap" data-v-fdbf4940><ul class="contact" data-v-fdbf4940><li class="contact-item" data-v-fdbf4940><a href="https://github.com/mlaustin44" target="_blank" rel="noopener noreferrer" class="nav-link external" data-v-fdbf4940><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github" data-v-fdbf4940><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" data-v-fdbf4940></path></svg>
+          
+        </a></li></ul></div> <div class="footer-right-wrap" data-v-fdbf4940><ul class="copyright" data-v-fdbf4940><li class="copyright-item" data-v-fdbf4940><a href="/2020/08/17/proxmox-zfs-disk-replacement/.html" class="nav-link" data-v-fdbf4940>Matthew Austin © 2020</a></li></ul></div></footer></div><div class="global-ui"></div></div>
+    <script src="/assets/js/app.719779a0.js" defer></script><script src="/assets/js/6.5a5d3722.js" defer></script><script src="/assets/js/3.0200f067.js" defer></script><script src="/assets/js/16.b495c123.js" defer></script>
+  </body>
+</html>
